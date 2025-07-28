@@ -1,9 +1,11 @@
 # infrastructure/orm_models.py
 import logging
+import re
 from django.core.cache import cache
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager, Permission
 from utensil.models import Base
+
 logger = logging.getLogger('account')
 
 
@@ -67,17 +69,19 @@ class User(AbstractBaseUser, PermissionsMixin, Base):
     username = models.CharField(max_length=150, db_index=True, help_text="用户名")
     email = models.EmailField(unique=True, null=True, blank=True, help_text="唯一邮箱")
     phone = models.CharField(max_length=20, unique=True, null=True, blank=True, help_text="唯一手机号")
-
     is_active = models.BooleanField(default=True, help_text="是否启用")
     is_staff = models.BooleanField(default=False, help_text="是否为后台管理员")
     is_superuser = models.BooleanField(default=False, help_text="是否为超级管理员")
-
     roles = models.ManyToManyField('Role', blank=True, related_name='users', help_text="所属角色")
-
     USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS = ['email']
 
     objects = UserManager()
+
+    class Meta:
+        db_table = 'account_user'
+        verbose_name = '用户'
+        verbose_name_plural = '用户'
 
     def __str__(self):
         return self.username or self.email or self.phone or str(self.pk)
@@ -103,6 +107,18 @@ class System(Base):
     code = models.CharField(max_length=50, unique=True, help_text="系统唯一标识")
     name = models.CharField(max_length=100, help_text="系统名称")
     description = models.TextField(blank=True, null=True, help_text="系统说明")
+    created_by = models.ForeignKey(
+        'User',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='created_systems',
+        help_text="创建人"
+    )
+
+    class Meta:
+        db_table = 'account_system'
+        verbose_name = '系统'
+        verbose_name_plural = '系统'
 
     def __str__(self):
         return self.name
@@ -116,6 +132,18 @@ class Role(Base):
     name = models.CharField(max_length=100, unique=True, help_text="角色名称")
     description = models.TextField(blank=True, null=True, help_text="角色描述")
     permissions = models.ManyToManyField(Permission, blank=True, related_name='custom_roles', help_text="角色权限")
+    created_by = models.ForeignKey(
+        'User',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='created_roles',
+        help_text="创建人"
+    )
+
+    class Meta:
+        db_table = 'account_role'
+        verbose_name = '角色'
+        verbose_name_plural = '角色'
 
     def __str__(self):
         return self.name
