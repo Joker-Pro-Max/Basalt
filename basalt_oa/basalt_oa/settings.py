@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'utensil',  # 自定义工具命令集
+
+    'account',
 ]
 
 MIDDLEWARE = [
