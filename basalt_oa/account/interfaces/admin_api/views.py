@@ -2,11 +2,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from account.application.use_cases import RegisterUserUseCase, LoginUserUseCase, GetMyUserInfoUseCase
-from account.interfaces.admin_api.serializers import RegisterSerializer, LoginSerializer
+
+from account.application.use_cases import RegisterUserUseCase, LoginUserUseCase, GetMyUserInfoUseCase, ListUsersUseCase
+from account.infrastructure.repositories import DjangoUserRepository
+from account.interfaces.admin_api.serializers import RegisterSerializer, LoginSerializer, UserListSerializer
 from rest_framework import generics, permissions
 from account.infrastructure.orm_models import User, System
 from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from utensil.views import CustomPagination
 
 
 class RegisterView(generics.GenericAPIView):
@@ -122,3 +126,32 @@ class MyUserInfoView(generics.RetrieveAPIView):
             })
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
+
+
+class UserListView(generics.ListAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserListSerializer
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        filters = {
+            "system": self.request.GET.get("system_code"),
+            "username": self.request.GET.get("username"),
+            "email": self.request.GET.get("email"),
+            "phone": self.request.GET.get("phone"),
+            "is_staff": self.request.GET.get("is_staff"),
+            "is_active": self.request.GET.get("is_active"),
+            "is_superuser": self.request.GET.get("is_superuser"),
+            "role_id": self.request.GET.get("role_id"),
+        }
+        return ListUsersUseCase().execute(filters)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)  # ✅ 使用分页响应
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

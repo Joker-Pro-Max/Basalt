@@ -28,3 +28,7 @@ class UserDomainService:
         if not user.is_active:
             raise ValueError("账户被禁用")
         return user
+
+
+    def list_users(self, filters: dict):
+        return self.user_repo.filter_user(**filters)

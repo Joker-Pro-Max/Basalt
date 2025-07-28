@@ -30,3 +30,11 @@ class GetMyUserInfoUseCase:
         if not user:
             raise ValueError("用户不存在")
         return user
+
+
+class ListUsersUseCase:
+    def __init__(self):
+        self.user_repo = DjangoUserRepository()
+
+    def execute(self, filters: dict):
+        return UserDomainService(self.user_repo).list_users(filters)
