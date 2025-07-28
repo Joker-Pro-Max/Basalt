@@ -2,10 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from account.application.use_cases import RegisterUserUseCase, LoginUserUseCase
+from account.application.use_cases import RegisterUserUseCase, LoginUserUseCase, GetMyUserInfoUseCase
 from account.interfaces.admin_api.serializers import RegisterSerializer, LoginSerializer
 from rest_framework import generics, permissions
 from account.infrastructure.orm_models import User, System
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 class RegisterView(generics.GenericAPIView):
@@ -97,3 +98,27 @@ class InitSuperAdminView(generics.GenericAPIView):
         )
         return Response({"msg": "超级管理员创建成功", "user": {"uuid": user.uuid, "email": user.email}},
                         status=status.HTTP_201_CREATED)
+
+
+# 获取用户信息
+class MyUserInfoView(generics.RetrieveAPIView):
+    authentication_classes = [JWTAuthentication]  # ✅ 需要JWT认证
+    permission_classes = [permissions.IsAuthenticated]  # 只允许已登录用户
+
+    def get(self, request, *args, **kwargs):
+        try:
+            # ✅ 从 request.user 获取 ID
+            user_id = request.user.uuid or str(request.user.uuid)
+            user_entity = GetMyUserInfoUseCase().execute(user_id)
+
+            return Response({
+                "uuid": user_entity.uuid,
+                "username": user_entity.username,
+                "email": user_entity.email,
+                "phone": user_entity.phone,
+                "system_code": user_entity.system_code,
+                "roles": user_entity.roles,
+                "permissions": user_entity.permissions
+            })
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
