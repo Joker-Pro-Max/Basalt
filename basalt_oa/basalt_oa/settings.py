@@ -163,6 +163,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
+    "USER_ID_FIELD": "uuid",  # ✅ 指定使用 uuid
+    "USER_ID_CLAIM": "uuid",  # ✅ JWT 里存储的字段名（自定义）
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
