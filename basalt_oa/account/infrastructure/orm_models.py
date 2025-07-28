@@ -32,12 +32,15 @@ class UserManager(BaseUserManager):
         if system is None:
             try:
                 system = System.objects.get(code=system_code)
-                cache.set(cache_key, system, timeout=3600)
+                cache.set(cache_key, system.uuid, timeout=3600)
             except System.DoesNotExist:
                 logger.warning(f"[Login] System not found: {system_code}")
-                return None
+                raise ValueError(f"[Login] 未获取到系统: {system_code}")
+            except Exception as e:
+                logger.warning(f"[Login] Exception: {e}")
+                raise ValueError(f"[Login] 报错信息: {str(e)}")
 
-        query = models.Q(system=system)
+        query = models.Q(system_id=system)
         if self._is_valid_email(account):
             query &= models.Q(email__iexact=account)
         elif self._is_valid_phone(account):

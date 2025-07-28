@@ -16,6 +16,8 @@ class RegisterView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        system_code = request.headers.get("X-System-Code", "default")
+
         try:
             # 执行注册用例
             user_entity = RegisterUserUseCase().execute(
@@ -23,7 +25,7 @@ class RegisterView(generics.GenericAPIView):
                 email=data.get('email'),
                 phone=data.get('phone'),
                 password=data['password'],
-                system_code=data['system_code']
+                system_code=system_code
             )
 
             # 生成 JWT token
@@ -56,8 +58,9 @@ class LoginView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        system_code = request.headers.get("X-System-Code", "Basalt")
         try:
-            user = LoginUserUseCase().execute(data['account'], data['password'], data['system_code'])
+            user = LoginUserUseCase().execute(data['account'], data['password'], system_code)
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -66,7 +69,7 @@ class LoginView(generics.GenericAPIView):
             "refresh": str(refresh),
             "access": str(refresh.access_token),
             "user": {
-                "id": user.id,
+                "uuid": user.uuid,
                 "username": user.username,
                 "email": user.email,
                 "phone": user.phone,
@@ -92,5 +95,5 @@ class InitSuperAdminView(generics.GenericAPIView):
             password="admin123456", system=system,
             is_superuser=True, is_staff=True
         )
-        return Response({"msg": "超级管理员创建成功", "user": {"id": user.id, "email": user.email}},
+        return Response({"msg": "超级管理员创建成功", "user": {"uuid": user.uuid, "email": user.email}},
                         status=status.HTTP_201_CREATED)

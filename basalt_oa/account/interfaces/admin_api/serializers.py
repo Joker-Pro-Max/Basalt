@@ -7,10 +7,8 @@ class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False, allow_blank=True)
     phone = serializers.CharField(required=False, allow_blank=True)
     password = serializers.CharField(write_only=True)
-    system_code = serializers.CharField()
 
 
 class LoginSerializer(serializers.Serializer):
     account = serializers.CharField()
     password = serializers.CharField(write_only=True)
-    system_code = serializers.CharField()
