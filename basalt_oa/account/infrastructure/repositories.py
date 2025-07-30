@@ -1,7 +1,4 @@
 # infrastructure/repositories.py
-import email
-
-from django.db.models import Q
 
 from account.domain.entities import UserInfoEntity
 from account.domain.repositories import IUserRepository
