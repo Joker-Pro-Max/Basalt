@@ -16,9 +16,15 @@ class UserDomainService:
         permissions = list(user.all_permissions)  # 调用 User 模型的 all_permissions 属性
 
         return UserEntity(
-            uuid=user.uuid, username=user.username, email=user.email,
-            phone=user.phone, system_code=system_code, roles=[], is_active=user.is_active,
-            django_user=user, permissions=permissions
+            uuid=user.uuid,
+            username=user.username,
+            email=user.email,
+            phone=user.phone,
+            system_code=system_code,
+            roles=[],
+            is_active=user.is_active,
+            django_user=user,
+            permissions=permissions
         )
 
     def authenticate_user(self, account, password, system_code):

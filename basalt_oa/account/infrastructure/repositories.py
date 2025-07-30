@@ -12,10 +12,10 @@ class DjangoUserRepository(IUserRepository):
     def get_by_account(self, account, system_code):
         return User.objects.get_by_account(account, system_code)
 
-    def exists_by_email_or_phone(self, email, phone):
+    def exists_by_email_or_phone(self, email, phone):  # noqa
         return User.objects.filter(email=email).exists() or User.objects.filter(phone=phone).exists()
 
-    def get_by_id(self, user_id):
+    def get_by_id(self, user_id):  # noqa
         try:
             user = User.objects.get(pk=user_id)
             return UserInfoEntity(
