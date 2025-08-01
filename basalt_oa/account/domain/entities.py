@@ -5,7 +5,8 @@ from typing import List, Optional
 
 @dataclass
 class UserEntity:
-    uuid: Optional[int]
+    uuid: Optional[str]
+    unified_uuid: Optional[str]
     username: str
     email: Optional[str]
     phone: Optional[str]
@@ -19,6 +20,7 @@ class UserEntity:
 @dataclass
 class UserInfoEntity:
     uuid: Optional[str]
+    unified_uuid: Optional[str]
     username: str
     email: Optional[str]
     phone: Optional[str]

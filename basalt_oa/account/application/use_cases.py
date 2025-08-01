@@ -38,3 +38,16 @@ class ListUsersUseCase:
 
     def execute(self, filters: dict):
         return UserDomainService(self.user_repo).list_users(filters)
+
+
+class GetCurrentUserUseCase:
+    """获取当前用户信息的用例"""
+
+    def __init__(self):
+        self.user_repo = DjangoUserRepository()
+
+    def execute(self, user_id):
+        user_entity = self.user_repo.get_by_system_id(user_id)
+        if not user_entity:
+            raise ValueError("用户不存在")
+        return user_entity

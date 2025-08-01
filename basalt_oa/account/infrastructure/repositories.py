@@ -1,6 +1,6 @@
 # infrastructure/repositories.py
 
-from account.domain.entities import UserInfoEntity
+from account.domain.entities import UserInfoEntity, UserEntity
 from account.domain.repositories import IUserRepository
 from account.infrastructure.orm_models import User, System
 
@@ -17,6 +17,7 @@ class DjangoUserRepository(IUserRepository):
             user = User.objects.get(pk=user_id)
             return UserInfoEntity(
                 uuid=user.uuid,
+                unified_uuid=user.unified_uuid,
                 username=user.username,
                 email=user.email,
                 phone=user.phone,
@@ -26,6 +27,20 @@ class DjangoUserRepository(IUserRepository):
             )
         except User.DoesNotExist:
             return None
+
+    def get_by_system_id(self, user_id):
+        user = User.objects.get(pk=user_id)
+        return UserEntity(
+            uuid=user.uuid,
+            unified_uuid=user.unified_uuid,
+            username=user.username,
+            email=user.email,
+            phone=user.phone,
+            system_code=user.system.code if user.system else None,
+            roles=[r.name for r in user.roles.all()],
+            permissions=user.all_permissions,
+            is_active=user.is_active,
+        )
 
     def create(self, username, email, phone, password, system_code):  # noqa
         system, _ = System.objects.get_or_create(code=system_code, defaults={"name": "Basalt"})

@@ -1,11 +1,13 @@
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from account.application.use_cases import RegisterUserUseCase, LoginUserUseCase, GetMyUserInfoUseCase, ListUsersUseCase
-from account.infrastructure.repositories import DjangoUserRepository
-from account.interfaces.admin_api.serializers import RegisterSerializer, LoginSerializer, UserListSerializer
+from account.application.use_cases import (
+    RegisterUserUseCase, LoginUserUseCase, GetMyUserInfoUseCase, ListUsersUseCase, GetCurrentUserUseCase
+)
+from account.interfaces.admin_api.serializers import (
+    RegisterSerializer, LoginSerializer, UserListSerializer
+)
 from rest_framework import generics, permissions
 from account.infrastructure.orm_models import User, System
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -128,6 +130,7 @@ class MyUserInfoView(generics.RetrieveAPIView):
             return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
 
+# 用户列表
 class UserListView(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -155,3 +158,23 @@ class UserListView(generics.ListAPIView):
             return self.get_paginated_response(serializer.data)  # ✅ 使用分页响应
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+# 其他系统获取 用户详情(获取权限等)
+
+class MeInfoView(generics.RetrieveAPIView):
+    """
+    获取当前登录用户信息 (A_SYSTEM_ME_API)
+    """
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserListSerializer  # 复用用户序列化
+
+    def get(self, request, *args, **kwargs):
+        # ✅ 从 request.user 中获取当前用户 (DRF 已解码 JWT)
+        user = request.user
+        # ✅ 调用应用层用例
+        user_entity = GetCurrentUserUseCase().execute(user.uuid)
+        # ✅ 序列化返回
+        serializer = self.get_serializer(user_entity)
+        return Response(serializer.data, status=status.HTTP_200_OK)
