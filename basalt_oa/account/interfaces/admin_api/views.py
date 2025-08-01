@@ -1,3 +1,4 @@
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -8,7 +9,8 @@ from account.application.use_cases import (
 from account.interfaces.admin_api.serializers import (
     RegisterSerializer, LoginSerializer, UserListSerializer
 )
-from rest_framework import generics, permissions
+from rest_framework import permissions
+from utensil import generics
 from account.infrastructure.orm_models import User, System
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
